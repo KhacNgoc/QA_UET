@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\User;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -28,7 +29,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -46,14 +47,30 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
+    public function showRegistrationForm()
+    {
+        return view('web.register');
+    }
+
     protected function validator(array $data)
     {
+        $mess =[
+            'name.required'=>'Không được bỏ trống mục này',
+            'name.max'=>'Không được quá 20 kí tự',
+            'email.required'=>'Không được bỏ trống mục này',
+            'email.unique'=>'Mail này đã được sử dụng',
+            'email.email'=>'Hãy nhập đúng định dạng của Email',
+            'password.required'=>'Không được bỏ trống mục này',
+            'password.min'=>'Mật khẩu ít nhất phải có 6 kí tự',
+            'password.confirmed'=>"Mật khẩu không khớp nhau."
+        ];
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        ],$mess);
     }
+
 
     /**
      * Create a new user instance after a valid registration.

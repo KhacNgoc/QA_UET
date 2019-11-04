@@ -266,11 +266,11 @@
                <div class="col-md-2 detail-state">
                    <div class="total-question">
                        <p>Questions</p>
-                       <strong>18</strong>
+                       <strong>16</strong>
                    </div>
                    <div class="total-member">
                        <p>Members</p>
-                       <strong>12</strong>
+                       <strong>{{$amountUser}}</strong>
                    </div>
                    <div class="most-used-tags">
                        <p>MOST USED TAGS</p>
@@ -330,7 +330,7 @@
            <div class="col-md-12 login"><!-- col-md-9 Begin -->
                <div class="row">
                    <div class="col-sm-6 img-login">
-                       <img class="img-responsive" src="../img/signin-image.jpg"/></div>
+                       <img class="img-responsive" src="{{asset('images/signin-image.jpg')}}"/></div>
                    <div class="col-sm-6">
                        <h2 id="signup">Sign In</h2>
                        <form method="post" action="#">
@@ -381,39 +381,10 @@
                       </form>
                   </div>
                   <div class="col-sm-6 register-img">
-                      <img class="img-responsive" src="../img/signup-image.jpg">
+                      <img class="img-responsive" src="{{asset('images/signup-image.jpg')}}">
                   </div>
               </div>
 
            </div>
        </div>
    </div>
-
-
-   <script>
-       $(document).ready(function(){
-           $('.login-register').click(function () {
-               $('.register').removeClass('show-register');
-               $('.login').addClass('show-login');
-               $('.bg-cover').addClass('show-bg-cover');
-               $('body').addClass('stop-scrolling');
-           });
-           $('#sign-up-here').click(function () {
-              $('.login').removeClass('show-login');
-              $('.register').addClass('show-register');
-           });
-           $('#login-here').click(function () {
-               $('.login').addClass('show-login');
-               $('.register').removeClass('show-register');
-           });
-           $('.display').click(function () {
-               $('.bg-cover').removeClass('show-bg-cover');
-               $('body').removeClass('stop-scrolling');
-           })
-       });
-   </script>
-</body>
-<!-- body -->
-
-
-</html>
