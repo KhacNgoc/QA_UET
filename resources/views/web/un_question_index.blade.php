@@ -1,15 +1,17 @@
 @extends('web.index_mater')
 @section('list-box-question')
+    @extends('web.index_mater')
+@section('list-box-question')
     <div class="list-box-question">
         @foreach($allsession as $su)
             @if(($su->id_session % 2) != 0)
                 <div style="background: #fff" class="box-question row">
                     @else
-                        <div class="box-question row">
+                        <div  class="box-question row">
                             @endif
                             <div class="col-md-8">
                                 <div class="content-box">
-                                    <strong><a href="{{route('show_detail_session',$su->id_session)}}">{{$su->name_session}}</a></strong>
+                                    <strong><a href="{{route("show_detail_session",$su->id_session)}}">{{$su->name_session}}</a></strong>
                                     <p>{{$su->description}}</p>
                                 </div>
                                 <div class="related-content row">
@@ -36,4 +38,6 @@
 
                 </div>
     </div>
+@stop
+
 @stop
