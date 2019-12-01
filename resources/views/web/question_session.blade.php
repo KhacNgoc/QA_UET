@@ -12,9 +12,14 @@
             <div class="col-md-6">
                 <ul class="profile-session">
                     <li id="title-session"><i class="fa fa-check"></i>{{$session[0]->name_session}}</li>
-                    <li id="person-session"><i class="fa fa-edit"></i>{{$name = (DB::table('users')->where('id',$session[0]->id_user))->value('name')}}</li>
+                    <li id="person-session"><i class="fa fa-edit"></i><a href="{{route('profile_user',$session[0]->id_user)}}">{{$name = (DB::table('users')->where('id',$session[0]->id_user))->value('name')}}</a></li>
                     <li id="des-session"><i class="far fa-sticky-note"></i>{{$session[0]->description}}</li>
                     <li id="time-session"><i class="fa fa-history"></i>{{$session[0]->created_at}}</li>
+                    @if(\Illuminate\Support\Facades\Auth::check())
+                        @if($session[0]->id_user == \Illuminate\Support\Facades\Auth::id())
+                            <li id="time-session"><i class="fas fa-user-edit"></i><button class="btn btn-danger edit" data-toggle="modal" data-target="#exampleModal1">Edit</button></li>
+                        @endif
+                    @endif
                 </ul>
             </div>
 
@@ -61,50 +66,128 @@
                                 <form id="send_comment" action="{{route('add_comment',$id_question)}}" method="post">
                                     @csrf
                                     <input class="form-control" type="text" placeholder="Viết nhận xét..." name="comment_question">
+                                    @if(\Illuminate\Support\Facades\Auth::check())
+                                    <input type="text" name="name_cmt" value="{{\Illuminate\Support\Facades\Auth::user()->name}}" hidden>
+                                    @endif
                                 </form>
                             </div>
                         </div>
-                        <div id="phantudiv">
-                        @foreach($comments as $comment)
-                        <div class="list-comment row">
-                            <div class="col-md-1 avatar-people">
-                                <img src="{{asset("images/web/profile.png")}}" alt="">
-                            </div>
-                            <div class="col-md-10 el-comment">
-                                <span style="color: #385898"><a href="#">{{\App\User::where('id',$comment->id_user)->value('name')}}</a></span><b> {{$comment->content}}</b>
-                                <ul class="like-comment-question">
-                                    <li class="like-comment-{{$comment->id_comment}}"><a href="#">Thích</a></li>
-                                    @if(($comments_in=DB::table('comment_in')->where('id_comment',$comment->id_comment)->get())->count() == 0)
-                                    <li class="res-comment-{{$comment->id_comment}}">Trả lời</li>
-                                    @else
-                                    <li class="res-comment-{{$comment->id_comment}}">Trả lời ({{$comments_in->count()}})</li>
-                                    @endif
-                                </ul>
-                                @foreach( $comments_in = DB::table('comment_in')->where('id_comment',$comment->id_comment)->get() as $cmt)
-                                <div class="rep-comment-{{$comment->id_comment}} rep-comment col-md-12 row">
-                                    <div class="col-md-1 avatar-people size-avatar">
-                                        <img src="{{asset("images/web/profile.png")}}" alt="">
-                                    </div>
-                                    <div class="col-md-11 content-rep-comment">
-                                        <span style="color: #385898"><a href="#">{{\App\User::where('id',$cmt->id_user)->value('name')}}</a></span><b> {{$cmt->content}}</b>
-                                    </div>
-                                </div>
-                                @endforeach
-                                <div class="rep-comment-{{$comment->id_comment}} rep-comment col-md-12 row" id="show_rep_comment">
-                                    <div class="col-md-1 avatar-people size-avatar">
-                                        <img src="{{asset("images/web/profile.png")}}" alt="">
-                                    </div>
-                                    <div class="col-md-11 content-rep-comment">
-                                        <form action="{{route('add_comment_in_comment',[$id_question,$comment->id_comment])}}" method="post">
-                                            @csrf
-                                            <input class="form-control" type="text" name="comment_rep" placeholder="viết phản hồi...">
-                                        </form>
 
+                        <div id="realtime_comment">
+                            @foreach($comments_success as $comment)
+                                <div class="list-comment row">
+                                    <div class="col-md-1 avatar-people">
+                                        <img src="{{asset("images/web/profile.png")}}" alt="">
+                                    </div>
+                                    <div style="background: #b9f1b9" class="col-md-10 el-comment">
+                                        @if(\Illuminate\Support\Facades\Auth::check())
+                                            <span style="color: #385898"><a href="{{route('profile_user',$comment->id_user)}}">{{\App\User::where('id',$comment->id_user)->value('name')}}</a></span><b> {{$comment->content}}</b>
+                                        @else
+                                            <span style="color: #385898">{{\App\User::where('id',$comment->id_user)->value('name')}}</span><b> {{$comment->content}}</b>
+                                        @endif
+                                        <ul class="like-comment-question">
+                                            <li class="like-comment-{{$comment->id_comment}}"><a href="#">Thích</a></li>
+                                            @if(($comments_in=DB::table('comment_in')->where('id_comment',$comment->id_comment)->get())->count() == 0)
+                                                <li class="res-comment-{{$comment->id_comment}}">Trả lời</li>
+                                            @else
+                                                <li class="res-comment-{{$comment->id_comment}}">Trả lời ({{$comments_in->count()}})</li>
+                                            @endif
+                                            @if(\Illuminate\Support\Facades\Auth::check())
+                                                @if($session[0]->id_user == \Illuminate\Support\Facades\Auth::id())
+                                                    <li class="set-success"><a href="{{route('confirm.comment',$comment->id_comment)}}"><i class="fas fa-check-circle"></i></a></li>
+                                                @endif
+                                            @endif
+
+                                        </ul>
+
+                                        @foreach( $comments_in = DB::table('comment_in')->where('id_comment',$comment->id_comment)->get() as $cmt)
+                                            <div class="rep-comment-{{$comment->id_comment}} rep-comment col-md-12 row">
+                                                <div class="col-md-1 avatar-people size-avatar">
+                                                    <img src="{{asset("images/web/profile.png")}}" alt="">
+                                                </div>
+                                                <div class="col-md-11 content-rep-comment">
+                                                    @if(\Illuminate\Support\Facades\Auth::check())
+                                                        <span style="color: #385898"><a href="{{route('profile_user',$cmt->id_user)}}">{{\App\User::where('id',$cmt->id_user)->value('name')}}</a></span><b> {{$cmt->content}}</b>
+                                                    @else
+                                                        <span style="color: #385898">{{\App\User::where('id',$cmt->id_user)->value('name')}}</span><b> {{$cmt->content}}</b>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+
+                                        <div class="rep-comment-{{$comment->id_comment}} rep-comment col-md-12 row" id="show_rep_comment">
+                                            <div class="col-md-1 avatar-people size-avatar">
+                                                <img src="{{asset("images/web/profile.png")}}" alt="">
+                                            </div>
+                                            <div class="col-md-11 content-rep-comment">
+                                                <form action="{{route('add_comment_in_comment',[$id_question,$comment->id_comment])}}" method="post">
+                                                    @csrf
+                                                    <input class="form-control" type="text" name="comment_rep" placeholder="viết phản hồi...">
+
+                                                </form>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                            @foreach($comments as $comment)
+                            <div class="list-comment row">
+                                <div class="col-md-1 avatar-people">
+                                    <img src="{{asset("images/web/profile.png")}}" alt="">
+                                </div>
+                                <div class="col-md-10 el-comment">
+                                        @if(\Illuminate\Support\Facades\Auth::check())
+                                            <span style="color: #385898"><a href="{{route('profile_user',$comment->id_user)}}">{{\App\User::where('id',$comment->id_user)->value('name')}}</a></span><b> {{$comment->content}}</b>
+                                        @else
+                                            <span style="color: #385898">{{\App\User::where('id',$comment->id_user)->value('name')}}</span><b> {{$comment->content}}</b>
+                                        @endif
+                                    <ul class="like-comment-question">
+                                        <li class="like-comment-{{$comment->id_comment}}"><a href="#">Thích</a></li>
+                                        @if(($comments_in=DB::table('comment_in')->where('id_comment',$comment->id_comment)->get())->count() == 0)
+                                        <li class="res-comment-{{$comment->id_comment}}">Trả lời</li>
+                                        @else
+                                        <li class="res-comment-{{$comment->id_comment}}">Trả lời ({{$comments_in->count()}})</li>
+                                        @endif
+                                        @if(\Illuminate\Support\Facades\Auth::check())
+                                            @if($session[0]->id_user == \Illuminate\Support\Facades\Auth::id())
+                                                <li class="set-success"><a href="{{route('confirm.comment',$comment->id_comment)}}"><i class="fas fa-check-circle"></i></a></li>
+                                            @endif
+                                        @endif
+
+                                    </ul>
+
+                                    @foreach( $comments_in = DB::table('comment_in')->where('id_comment',$comment->id_comment)->get() as $cmt)
+                                    <div class="rep-comment-{{$comment->id_comment}} rep-comment col-md-12 row">
+                                        <div class="col-md-1 avatar-people size-avatar">
+                                            <img src="{{asset("images/web/profile.png")}}" alt="">
+                                        </div>
+                                        <div class="col-md-11 content-rep-comment">
+                                            @if(\Illuminate\Support\Facades\Auth::check())
+                                            <span style="color: #385898"><a href="{{route('profile_user',$cmt->id_user)}}">{{\App\User::where('id',$cmt->id_user)->value('name')}}</a></span><b> {{$cmt->content}}</b>
+                                            @else
+                                                <span style="color: #385898">{{\App\User::where('id',$cmt->id_user)->value('name')}}</span><b> {{$cmt->content}}</b>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @endforeach
+
+                                    <div class="rep-comment-{{$comment->id_comment}} rep-comment col-md-12 row" id="show_rep_comment">
+                                        <div class="col-md-1 avatar-people size-avatar">
+                                            <img src="{{asset("images/web/profile.png")}}" alt="">
+                                        </div>
+                                        <div class="col-md-11 content-rep-comment">
+                                            <form action="{{route('add_comment_in_comment',[$id_question,$comment->id_comment])}}" method="post">
+                                                @csrf
+                                                <input class="form-control" type="text" name="comment_rep" placeholder="viết phản hồi...">
+
+                                            </form>
+
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        @endforeach
+                            @endforeach
                         </div>
 
                     </div>
@@ -113,8 +196,33 @@
 
         </div>
     </div>
-    <!-- Modal -->
+    <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Chỉnh sửa nội dụng:</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route("edit_session",$session[0]->id_session)}}" method="post">
+                        @csrf
+                        <input class="form-control" placeholder="Tiêu đề..." type="text" name="title_edit" minlength="6" maxlength="60"><br>
+                        <input class="form-control" placeholder="Mô tả..." type="text" name="desc_edit" minlength="6" maxlength="60">
+                        <input  type="submit" class="btn btn-primary" value="submit">
+                    </form>
+                </div>
+
+            </div>
+        </div>
     </div>
+
+
+
+
+    <!-- Modal -->
+
     <script>
         $(document).ready(function() {
             $('input[name="comment_question"]').keypress(function(e) {
@@ -130,23 +238,26 @@
             });
         });
     </script>
+    <script>
+        // Enable pusher logging - don't include this in production
+        Pusher.logToConsole = true;
+
+        var pusher = new Pusher('edab6293e303ca06454e', {
+            cluster: 'us2',
+            forceTLS: true
+        });
+
+        var channel = pusher.subscribe('my-channel');
+        var phantuchon = $("#realtime_comment");
+        channel.bind('form-submitted', function(data) {
+            // alert(JSON.stringify(data));
+            const string = JSON.stringify(data);
+            const obj = JSON.parse(string);
+            @if(\Illuminate\Support\Facades\Auth::check())
+            phantuchon.append("<div class='list-comment row'><div class='col-md-1 avatar-people'><img src='{{asset('images/web/profile.png')}}'></div><div class='col-md-10 el-comment'><span style='color: #385898'><a href='{{route('profile_user',\Illuminate\Support\Facades\Auth::id())}}'>"+obj.name_cmt+"</a></span><b> "+obj.text+"</b><ul class='like-comment-question'><li class='like-comment'><a href='#'>Thích</a></li><li class='res-comment'>Trả lời <i style='margin-left:3px' class=\"fas fa-check-circle\"></i></li></ul></div></div>");
+            @endif
+        });
+    </script>
 </body>
 
 </html>
-<script>
-    Pusher.logToConsole = true;
-
-    var pusher = new Pusher('edab6293e303ca06454e', {
-        cluster: 'us2',
-        forceTLS: true
-    });
-    
-    var phantuchon = $("#phantudiv");
-    var channel = pusher.subscribe('my-channel');
-    channel.bind('form-submitted', function(data) {
-        alert(JSON.stringify(data));
-        const string=JSON.stringify(data);
-        const obj=JSON.parse(string);
-        phantuchon.append("<div class='list-comment row'> <div class='col-md-10 el-comment'> <div class='col-md-1 avatar-people'> <img src='{{asset('images/web/profile.png')}}'> </div>"+obj.text+"</div></div");
-    });
-</script>
